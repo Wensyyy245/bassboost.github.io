@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wensy Bass Booster PRO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body, html {
+            height: 100%; font-family: 'Montserrat', sans-serif; overflow-y: auto;
+            background-color: #0d0d1a; display: flex; justify-content: center; align-items: center; color: white;
+        }
+
+        #bg-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; background: url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?q=80&w=2000&auto=format&fit=crop') center/cover;
+            filter: blur(6px) brightness(0.2);
+        }
+
+        .booster-card {
+            position: relative; z-index: 2; width: 100%; max-width: 550px;
+            margin: 20px; padding: 35px 40px;
+            background: rgba(20, 15, 35, 0.7); border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 28px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(120, 50, 255, 0.08);
+            text-align: center; animation: fadeUp 1s ease-out forwards;
+        }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .title {
+            font-family: 'Unbounded', sans-serif; font-size: 32px; font-weight: 700;
+            background: linear-gradient(135deg, #e879f9, #22d3ee);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px;
+        }
+
+        .subtitle { font-size: 13px; color: rgba(255, 255, 255, 0.6); margin-bottom: 25px; }
+
+        .file-upload {
+            display: block; width: 100%; padding: 15px; border-radius: 14px;
+            border: 2px dashed rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.2);
+            cursor: pointer; transition: 0.3s; margin-bottom: 20px;
+        }
+        .file-upload:hover { border-color: #22d3ee; background: rgba(34, 211, 238, 0.05); }
+        .file-upload input { display: none; }
+        .file-label { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.8); pointer-events: none; }
+
+        .timeline {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 25px; background: rgba(0,0,0,0.2); padding: 10px 15px; border-radius: 12px;
+        }
+        .time-text { font-size: 12px; color: rgba(255,255,255,0.6); min-width: 45px; text-align: center; }
+        input[type="range"].seek-bar {
+            flex-grow: 1; -webkit-appearance: none; height: 6px;
+            background: rgba(255, 255, 255, 0.1); border-radius: 3px; outline: none; cursor: pointer;
+        }
+        input[type="range"].seek-bar::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+            background: #22d3ee; box-shadow: 0 0 10px rgba(34, 211, 238, 0.5); cursor: pointer;
+        }
+
+        .controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
+        .control-group {
+            background: rgba(0, 0, 0, 0.25); padding: 12px 20px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .control-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; font-weight: 600; }
+        .control-header span:last-child { color: #22d3ee; }
+
+        input[type="range"] {
+            -webkit-appearance: none; width: 100%; height: 6px; background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px; outline: none; cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+            background: linear-gradient(135deg, #a855f7, #06b6d4); box-shadow: 0 0 10px rgba(168, 85, 247, 0.5); transition: 0.2s;
+        }
+
+        .play-btn {
+            width: 100%; padding: 16px; border-radius: 16px; border: none;
+            background: linear-gradient(135deg, #a855f7, #06b6d4); color: white;
+            font-family: 'Unbounded', sans-serif; font-size: 16px; font-weight: 700;
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.2);
+        }
+        .play-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(168, 85, 247, 0.4); }
+        .play-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .danger-text { font-size: 11px; color: #ff4d4d; margin-top: 5px; display: none; }
+
+        @media (max-width: 500px) {
+            .booster-card { padding: 25px 20px; margin: 10px; }
+            .title { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="bg-container"></div>
+
+    <div class="booster-card">
+        <div class="title">Bass Booster PRO</div>
+        <div class="subtitle">Сабвуфер 18Hz + Защита мелодии</div>
+
+        <label class="file-upload" id="uploadLabel">
+            <input type="file" id="audioFile" accept="audio/*">
+            <div class="file-label">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 20px; color: #22d3ee;"></i>
+                <span id="fileName">Выберите MP3 файл</span>
+            </div>
+        </label>
+
+        <!-- ТАЙМЛАЙН -->
+        <div class="timeline">
+            <span class="time-text" id="currentTime">0:00</span>
+            <input type="range" class="seek-bar" id="seekBar" min="0" max="100" value="0" step="0.01">
+            <span class="time-text" id="totalTime">0:00</span>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Сила баса (Low Shelf)</span>
+                    <span id="shelfValue">+10 dB</span>
+                </div>
+                <input type="range" id="shelfSlider" min="0" max="24" value="10" step="1">
+            </div>
+
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Частота удара (Hz)</span>
+                    <span id="freqValue" style="color: #ff4d4d;">18 Hz</span>
+                </div>
+                <input type="range" id="freqSlider" min="15" max="80" value="18" step="1">
+                <div class="danger-text" id="dangerText">⚠️ Ниже 20 Гц саб может захрипеть!</div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Сила удара (Peaking)</span>
+                    <span id="peakValue">+12 dB</span>
+                </div>
+                <input type="range" id="peakSlider" min="0" max="24" value="12" step="1">
+            </div>
+
+            <!-- ОБНОВЛЕННЫЙ ПОЛЗУНОК ГРОМКОСТИ МЕЛОДИИ -->
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Громкость мелодии (вокал/гитара)</span>
+                    <span id="melodyValue">100%</span>
+                </div>
+                <input type="range" id="melodySlider" min="0" max="100" value="100" step="1">
+            </div>
+        </div>
+
+        <button class="play-btn" id="playBtn" disabled>
+            <i class="fas fa-play"></i> Включить
+        </button>
+    </div>
+
+    <script>
+        // Элементы
+        const audioFile = document.getElementById('audioFile');
+        const fileName = document.getElementById('fileName');
+        const playBtn = document.getElementById('playBtn');
+        
+        const shelfSlider = document.getElementById('shelfSlider');
+        const freqSlider = document.getElementById('freqSlider');
+        const peakSlider = document.getElementById('peakSlider');
+        const melodySlider = document.getElementById('melodySlider');
+        
+        const shelfValue = document.getElementById('shelfValue');
+        const freqValue = document.getElementById('freqValue');
+        const peakValue = document.getElementById('peakValue');
+        const melodyValue = document.getElementById('melodyValue');
+        const dangerText = document.getElementById('dangerText');
+
+        const seekBar = document.getElementById('seekBar');
+        const currentTimeEl = document.getElementById('currentTime');
+        const totalTimeEl = document.getElementById('totalTime');
+
+        // Переменные аудио
+        let audioContext;
+        let sourceNode;
+        
+        // Узлы звука
+        let shelfFilter;
+        let peakFilter;
+        let melodyGain; // Управление громкостью мелодии
+        let bassGain;   // Управление громкостью баса (можно оставить 1)
+        let compressor;
+        let limiter;
+
+        let isPlaying = false;
+        let audioBuffer = null;
+        
+        // Переменные таймлайна
+        let startTime = 0; 
+        let pauseOffset = 0; 
+        let rafId;
+        let isSeeking = false; 
+
+        // Форматирование времени
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        // Обновление таймлайна
+        function updateTimeline() {
+            if (!audioBuffer || isSeeking) return; 
+            
+            if (isPlaying) {
+                const elapsed = (audioContext.currentTime - startTime) + pauseOffset;
+                const duration = audioBuffer.duration;
+                
+                if (elapsed >= duration) {
+                    stopPlayback();
+                    seekBar.value = 0;
+                    currentTimeEl.textContent = "0:00";
+                    return;
+                }
+
+                seekBar.value = (elapsed / duration) * 100;
+                currentTimeEl.textContent = formatTime(elapsed);
+            }
+            rafId = requestAnimationFrame(updateTimeline);
+        }
+
+        // Загрузка файла
+        audioFile.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            fileName.textContent = file.name;
+            playBtn.disabled = false;
+            playBtn.innerHTML = '<i class="fas fa-play"></i> Включить';
+            stopPlayback();
+
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const arrayBuffer = await file.arrayBuffer();
+            audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            
+            totalTimeEl.textContent = formatTime(audioBuffer.duration);
+            pauseOffset = 0;
+            seekBar.value = 0;
+            currentTimeEl.textContent = "0:00";
+        });
+
+        // Перемотка (тянем)
+        seekBar.addEventListener('input', (e) => {
+            isSeeking = true;
+            if (!audioBuffer) return;
+            
+            const percent = parseFloat(e.target.value);
+            const newTime = (percent / 100) * audioBuffer.duration;
+            currentTimeEl.textContent = formatTime(newTime);
+        });
+
+        // Перемотка (отпустили)
+        seekBar.addEventListener('change', (e) => {
+            isSeeking = false;
+            if (!audioBuffer) return;
+            
+            const percent = parseFloat(e.target.value);
+            const newTime = (percent / 100) * audioBuffer.duration;
+            
+            if (isPlaying) {
+                restartFromTime(newTime);
+            } else {
+                pauseOffset = newTime;
+            }
+        });
+
+        function restartFromTime(seconds) {
+            if (sourceNode) {
+                try { sourceNode.stop(); } catch(e) {}
+                sourceNode.disconnect();
+            }
+            startPlayback(seconds);
+        }
+
+        function stopPlayback() {
+            if (sourceNode) {
+                try { sourceNode.stop(); } catch(e) {}
+                sourceNode.disconnect();
+            }
+            isPlaying = false;
+            playBtn.innerHTML = '<i class="fas fa-play"></i> Включить';
+            cancelAnimationFrame(rafId);
+        }
+
+        // --- ГЛАВНАЯ ФУНКЦИЯ СБОРКИ ЗВУКА ---
+        function startPlayback(offset = 0) {
+            sourceNode = audioContext.createBufferSource();
+            sourceNode.buffer = audioBuffer;
+
+            // 1. РАЗДЕЛИТЕЛЬ (Splitter) - разделяем на левый и правый канал
+            const splitter = audioContext.createChannelSplitter(2);
+
+            // 2. КАНАЛ БАСА (Нижние частоты)
+            // Отправляем в левый канал (0)
+            shelfFilter = audioContext.createBiquadFilter();
+            shelfFilter.type = 'lowshelf';
+            shelfFilter.frequency.value = 120; 
+            shelfFilter.gain.value = parseFloat(shelfSlider.value);
+
+            peakFilter = audioContext.createBiquadFilter();
+            peakFilter.type = 'peaking';
+            peakFilter.frequency.value = parseFloat(freqSlider.value);
+            peakFilter.gain.value = parseFloat(peakSlider.value);
+            peakFilter.Q.value = 1.5;
+
+            bassGain = audioContext.createGain();
+            bassGain.gain.value = 1.0; // Бас всегда на максимум
+
+            // 3. КАНАЛ МЕЛОДИИ (Верхние частоты)
+            // Отправляем в правый канал (1)
+            // Highpass фильтр отсекает саб из мелодии
+            const highpass = audioContext.createBiquadFilter();
+            highpass.type = 'highpass';
+            highpass.frequency.value = 120; // Всё что выше 120 Гц - это мелодия
+
+            // ЭТОТ УЗЕЛ УПРАВЛЯЕТ ГРОМКОСТЬЮ МЕЛОДИИ
+            melodyGain = audioContext.createGain();
+            melodyGain.gain.value = parseFloat(melodySlider.value) / 100; 
+
+            // 4. ОБЪЕДИНИТЕЛЬ (Merger) - склеиваем бас и мелодию обратно
+            const merger = audioContext.createChannelMerger(2);
+
+            // 5. КОМПРЕССОР (Сайдчейн) - чтобы бас не убивал мелодию
+            compressor = audioContext.createDynamicsCompressor();
+            compressor.threshold.value = -12;
+            compressor.knee.value = 10;
+            compressor.ratio.value = 8;
+            compressor.attack.value = 0.01;
+            compressor.release.value = 0.25;
+
+            // 6. ЛИМИТЕР (Финальная защита)
+            limiter = audioContext.createDynamicsCompressor();
+            limiter.threshold.value = -3;
+            limiter.knee.value = 0;
+            limiter.ratio.value = 20;
+            limiter.attack.value = 0.001;
+            limiter.release.value = 0.1;
+
+            // --- СОБИРАЕМ СХЕМУ ---
+            
+            // Источник в сплиттер
+            sourceNode.connect(splitter);
+            
+            // Левый канал (Бас) -> Фильтры -> Усилитель баса -> Merger (Вход 0)
+            splitter.connect(shelfFilter, 0);
+            shelfFilter.connect(peakFilter);
+            peakFilter.connect(bassGain);
+            bassGain.connect(merger, 0, 0);
+
+            // Правый канал (Мелодия) -> Highpass -> Усилитель мелодии -> Merger (Вход 1)
+            splitter.connect(highpass, 1);
+            highpass.connect(melodyGain);
+            melodyGain.connect(merger, 0, 1);
+
+            // Merger -> Компрессор -> Лимитер -> Динамики
+            merger.connect(compressor);
+            compressor.connect(limiter);
+            limiter.connect(audioContext.destination);
+
+            // Запуск
+            startTime = audioContext.currentTime;
+            pauseOffset = offset;
+            
+            sourceNode.start(0, offset);
+            isPlaying = true;
+            playBtn.innerHTML = '<i class="fas fa-pause"></i> Пауза';
+            
+            updateTimeline();
+
+            sourceNode.onended = () => {
+                if (isPlaying) {
+                    isPlaying = false;
+                    playBtn.innerHTML = '<i class="fas fa-play"></i> Включить';
+                    seekBar.value = 0;
+                    currentTimeEl.textContent = "0:00";
+                }
+            };
+        }
+
+        playBtn.addEventListener('click', async () => {
+            if (!audioBuffer) return;
+
+            if (audioContext.state === 'suspended') await audioContext.resume();
+
+            if (isPlaying) {
+                pauseOffset = (audioContext.currentTime - startTime) + pauseOffset;
+                stopPlayback();
+            } else {
+                startPlayback(pauseOffset);
+            }
+        });
+
+        // Слушатели ползунков (с изменением на лету)
+        shelfSlider.addEventListener('input', (e) => {
+            shelfValue.textContent = `+${e.target.value} dB`;
+            if (shelfFilter) shelfFilter.gain.value = parseFloat(e.target.value);
+        });
+
+        freqSlider.addEventListener('input', (e) => {
+            const freq = parseFloat(e.target.value);
+            freqValue.textContent = `${freq} Hz`;
+            if (freq < 20) {
+                freqValue.style.color = '#ff4d4d';
+                dangerText.style.display = 'block';
+            } else {
+                freqValue.style.color = '#22d3ee';
+                dangerText.style.display = 'none';
+            }
+            if (peakFilter) peakFilter.frequency.value = freq;
+        });
+
+        peakSlider.addEventListener('input', (e) => {
+            peakValue.textContent = `+${e.target.value} dB`;
+            if (peakFilter) peakFilter.gain.value = parseFloat(e.target.value);
+        });
+
+        // Главное изменение: громкость мелодии теперь управляет Gain узлом
+        melodySlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            melodyValue.textContent = `${val}%`;
+            if (melodyGain) {
+                melodyGain.gain.value = val / 100;
+            }
+        });
+    </script>
+</body>
+</html>
